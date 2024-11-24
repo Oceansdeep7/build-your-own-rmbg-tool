@@ -38,3 +38,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+.idea/.gitignore
+.idea/build-your-own-rmbg-tool.iml
+.idea/modules.xml
+.idea/vcs.xml
+.idea/inspectionProfiles/Project_Default.xml

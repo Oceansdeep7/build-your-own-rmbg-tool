@@ -14,9 +14,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-      >
+      <body>
         {children}
+        <footer className="fixed bottom-0 w-full p-4 text-center text-gray-500 text-sm">
+          Powered by <a href="https://www.briaai.com" className="underline hover:text-gray-700">Briaai</a>'s RMBG-1.4 Model
+        </footer>
       </body>
     </html>
   );
