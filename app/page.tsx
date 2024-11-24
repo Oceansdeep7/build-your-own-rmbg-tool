@@ -66,6 +66,13 @@ export default function Home() {
     };
   }, []);
 
+  const handleImageUploaded = (url: string) => {
+    console.log(url, worker.current)
+    if (worker.current) {
+      worker.current.postMessage({ url });
+    }
+  }
+
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-12">
       <h1 className="text-5xl font-bold mb-2 text-center">Remove Background Tool</h1>
@@ -84,6 +91,7 @@ export default function Home() {
           if (file && file.type.startsWith('image/')) {
             const url = URL.createObjectURL(file);
             setImageUrl(url);
+            handleImageUploaded(url)
           }
         }}
       >
@@ -96,6 +104,7 @@ export default function Home() {
             if (file) {
               const url = URL.createObjectURL(file);
               setImageUrl(url);
+              handleImageUploaded(url)
             }
           }}
         />

@@ -1,7 +1,7 @@
 import { AutoModel, AutoProcessor, env, RawImage } from "@huggingface/transformers";
 
 // Since we will download the model from the Hugging Face Hub, we can skip the local model check
-env.allowLocalModels = false;
+env.allowLocalModels = true;
 
 // Proxy the WASM backend to prevent the UI from freezing
 env.backends.onnx.wasm.proxy = true;
@@ -45,7 +45,6 @@ RMBGModelSingleton.getInstance();
 self.addEventListener('message', async ({ data }) => {
     const { model, processor } = await RMBGModelSingleton.getInstance();
     const image = await RawImage.fromURL(data.url);
-
     // Preprocess image and predict alpha matte
     const { pixel_values } = await processor(image);
     const { output } = await model({ input: pixel_values });
