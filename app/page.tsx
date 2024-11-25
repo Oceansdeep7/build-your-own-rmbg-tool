@@ -123,11 +123,11 @@ export default function Home() {
     }
   }
 
-  const handleSetDefaultImage = () => {
-    setUploadedImageUrl(EXAMPLE_URL);
-    originalImageRef.current = EXAMPLE_URL;
-    handleImageUploaded(EXAMPLE_URL);
-  }
+  // const handleSetDefaultImage = () => {
+  //   setUploadedImageUrl(EXAMPLE_URL);
+  //   originalImageRef.current = EXAMPLE_URL;
+  //   handleImageUploaded(EXAMPLE_URL);
+  // }
 
   const renderUploadIcon = () => (
     <>
