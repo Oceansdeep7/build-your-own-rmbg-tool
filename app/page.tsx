@@ -7,10 +7,14 @@ interface WorkerMessage {
   mask?: ImageData;
 }
 
+const EXAMPLE_URL = 'https://images.pexels.com/photos/5965592/pexels-photo-5965592.jpeg?auto=compress&cs=tinysrgb&w=1024';
+
 export default function Home() {
-  const [resultUrl, setResult] = useState<string | null>(null);
-  const [ready, setReady] = useState<boolean>(false);
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [isModelReady, setIsModelReady] = useState<boolean>(false);
+  const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [resultImageUrl, setResultImageUrl] = useState<string>('');
+  const [uploadedImageUrl, setUploadedImageUrl] = useState<string>('');
+  const originalImageRef = useRef('');
 
   const worker = useRef<Worker | null>(null);
 
@@ -24,16 +28,17 @@ export default function Home() {
     const onMessageReceived = (e: MessageEvent<WorkerMessage>) => {
       switch (e.data.status) {
         case 'initiate':
-          setReady(false);
+          setIsModelReady(false);
           break;
         case 'ready':
-          setReady(true);
+          setIsModelReady(true);
           break;
         case 'complete':
-          if (e.data.mask && imageUrl) {
+          setIsProcessing(false);
+          if (e.data.mask && originalImageRef.current) {
             const mask = e.data.mask;
             const image = new Image();
-            image.src = imageUrl;
+            image.src = originalImageRef.current;
 
             image.onload = () => {
               const canvas = document.createElement('canvas');
@@ -54,7 +59,7 @@ export default function Home() {
 
               // Convert canvas to data URL and set result
               const resultUrl = canvas.toDataURL('image/png');
-              setResult(resultUrl);
+              setResultImageUrl(resultUrl);
             };
         
           }
@@ -70,49 +75,58 @@ export default function Home() {
   }, []);
 
   const handleImageUploaded = (url: string) => {
-    console.log(url, worker.current)
-    setResult(null); // Clear result when uploading new image
+    setResultImageUrl(''); // Clear result when uploading new image
+    setIsProcessing(true);
     if (worker.current) {
       worker.current.postMessage({ url });
     }
   }
 
   const handleDragOver = (e: React.DragEvent) => {
-    if (!ready) return;
+    if (!isModelReady) return;
     e.preventDefault();
     e.stopPropagation();
   }
 
+  const handleFile = (file: File) => {
+    const url = URL.createObjectURL(file);
+    setUploadedImageUrl(url);
+    originalImageRef.current = url;
+    handleImageUploaded(url);
+  }
+
   const handleDrop = (e: React.DragEvent) => {
-    if (!ready) return;
+    if (!isModelReady) return;
     e.preventDefault();
     e.stopPropagation();
     const file = e.dataTransfer.files[0];
     if (file && file.type.startsWith('image/')) {
-      const url = URL.createObjectURL(file);
-      setImageUrl(url);
-      handleImageUploaded(url)
+      handleFile(file);
     }
   }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const url = URL.createObjectURL(file);
-      setImageUrl(url);
-      handleImageUploaded(url)
+      handleFile(file);
     }
   }
 
   const handleDownload = () => {
-    if (resultUrl) {
+    if (resultImageUrl) {
       const link = document.createElement('a');
-      link.href = resultUrl;
+      link.href = resultImageUrl;
       link.download = 'removed-background.png';
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
     }
+  }
+
+  const handleSetDefaultImage = () => {
+    setUploadedImageUrl(EXAMPLE_URL);
+    originalImageRef.current = EXAMPLE_URL;
+    handleImageUploaded(EXAMPLE_URL);
   }
 
   const renderUploadIcon = () => (
@@ -121,7 +135,7 @@ export default function Home() {
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
       </svg>
       <p className="text-gray-500">
-        {ready ? 'Drag and drop an image here, or click to select' : 'Loading model... Please wait'}
+        {isModelReady ? 'Drag and drop an image here, or click to select' : 'Loading model... Please wait'}
       </p>
     </>
   )
@@ -133,44 +147,69 @@ export default function Home() {
 
       <div className="flex gap-8 w-full justify-center">
         <div 
-          className={`w-full max-w-xl h-96 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center p-6 mt-8 relative ${!ready ? 'opacity-50 cursor-not-allowed' : ''}`}
+          className={`w-full max-w-xl h-96 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center p-6 mt-8 relative ${!isModelReady ? 'opacity-50 cursor-not-allowed' : ''}`}
           onDragOver={handleDragOver}
           onDrop={handleDrop}
         >
           <input
             type="file"
             accept="image/*"
-            disabled={!ready}
+            disabled={!isModelReady}
             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
             onChange={handleFileChange}
           />
-          {!imageUrl ? renderUploadIcon() : (
+          {!uploadedImageUrl ? renderUploadIcon() : (
             <img 
-              src={imageUrl} 
+              src={uploadedImageUrl} 
               alt="Uploaded image"
               className="max-w-full max-h-full object-contain"
             />
           )}
         </div>
 
-        {resultUrl && (
+        {(resultImageUrl || isProcessing) && (
           <div className="w-full max-w-xl h-96 mt-8 flex flex-col items-center">
             <div className="border-2 border-gray-300 rounded-lg p-6 h-full w-full flex items-center justify-center">
-              <img 
-                src={resultUrl} 
-                alt="Result image"
-                className="max-w-full max-h-full object-contain"
-              />
+              {isProcessing ? (
+                <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
+              ) : (
+                <img 
+                  src={resultImageUrl} 
+                  alt="Result image"
+                  className="max-w-full max-h-full object-contain"
+                />
+              )}
             </div>
-            <button
-              onClick={handleDownload}
-              className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-            >
-              Download 
-            </button>
           </div>
         )}
       </div>
+      {resultImageUrl && (
+        <div className="w-full flex justify-center mt-4 gap-4">
+          <button
+            onClick={handleDownload}
+            className="px-8 py-3 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors text-lg"
+          >
+            Download
+          </button>
+          <button
+            onClick={() => {
+              setUploadedImageUrl('');
+              setResultImageUrl('');
+            }}
+            className="px-8 py-3 bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors text-lg"
+          >
+            Reset
+          </button>
+        </div>
+      )}
+      {/* {!uploadedImageUrl && isModelReady && (
+        <button
+          onClick={handleSetDefaultImage}
+          className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+        >
+          Try default Image
+        </button>
+      )} */}
     </main>
   )
 }

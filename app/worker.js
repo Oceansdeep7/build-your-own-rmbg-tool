@@ -51,7 +51,6 @@ self.addEventListener('message', async ({ data }) => {
 
     // Resize mask back to original size
     const mask = await RawImage.fromTensor(output[0].mul(255).to('uint8')).resize(image.width, image.height);
-
     // Send the output back to the main thread
     self.postMessage({
         status: 'complete',
