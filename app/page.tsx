@@ -7,7 +7,7 @@ interface WorkerMessage {
   mask?: ImageData;
 }
 
-const EXAMPLE_URL = 'https://images.pexels.com/photos/5965592/pexels-photo-5965592.jpeg?auto=compress&cs=tinysrgb&w=1024';
+// const EXAMPLE_URL = 'https://images.pexels.com/photos/5965592/pexels-photo-5965592.jpeg?auto=compress&cs=tinysrgb&w=1024';
 
 export default function Home() {
   const [isModelReady, setIsModelReady] = useState<boolean>(false);
