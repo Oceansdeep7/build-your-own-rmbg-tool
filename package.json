@@ -12,6 +12,7 @@
     "@huggingface/transformers": "^3.0.2",
     "next": "15.0.3",
     "react": "19.0.0-rc-66855b96-20241106",
+    "react-compare-slider": "^3.1.0",
     "react-dom": "19.0.0-rc-66855b96-20241106"
   },
   "devDependencies": {

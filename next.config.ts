@@ -10,11 +10,11 @@ const nextConfig: NextConfig = {
     output: 'export',
 
     webpack: (config) => {
-        config.resolve.alias['@huggingface/transformers'] = path.resolve(__dirname, 'node_modules/@huggingface/transformers');
         config.resolve.alias = {
             ...config.resolve.alias,
             "sharp$": false,
             "onnxruntime-node$": false,
+            '@huggingface/transformers': path.resolve(__dirname, 'node_modules/@huggingface/transformers')
         }
         return config;
     },
