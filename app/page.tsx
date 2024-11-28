@@ -178,7 +178,7 @@ export default function Home() {
           </div>
         ) : (
           <ReactCompareSlider
-            style={{ maxHeight: '50vw' }}
+            style={{ maxWidth: '50vw' }}
             itemOne={<ReactCompareSliderImage src={uploadedImageUrl} alt="Origin Image" />}
             itemTwo={<ReactCompareSliderImage style={{
               backgroundColor: 'white',
